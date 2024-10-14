@@ -1,192 +1,325 @@
-#include<iostream>
-#include<fstream>
-#include<string>
-
+#include <iostream>
+#include <string>
+#include <fstream>
 using namespace std;
-int CalCalc();
 
-class FoodLog{
-    private:
-        string fileName, foodName, tempname;
-        double calorieValue;
-    public:
+const int MAX_MEALS = 100;
 
-        FoodLog(const string& file):fileName(file){}
-
-        void addFood(){
-            ofstream outFile(fileName, ios::app);  
-            if (!outFile){
-                cout << "Error opening file!" << endl;
-                return;
-            }
-            cout << "Enter food name: ";
-            cin.ignore();  
-            getline(cin, foodName);
-            cout << "Enter calorie value per 100g: ";
-            cin >> calorieValue;
-            outFile << foodName << " " << calorieValue << endl;
-            outFile.close();
-            cout << "Food added!" << endl;
-        }
-
-        void viewFoodLog(){
-            ifstream inFile(fileName); 
-            if(!inFile){
-                cout << "Error opening file!" << endl;
-                return;
-            }
-            cout << "\nFood Log:" << endl;
-            while(inFile >> foodName >> calorieValue){
-                cout << foodName << " - " << calorieValue << " calories per 100g" << endl;
-            }
-
-            inFile.close();
-        }
-        
-        bool findFood(const string& targetFood, double& foundCalories) {
-            ifstream inFile(fileName);
-            bool found = false;
-            while (inFile >> foodName >> calorieValue) {
-                if (foodName == targetFood) {
-                    foodName = targetFood;
-                    foundCalories = calorieValue;
-                    found = true;
-                    break;
-                }
-            }
-            inFile.close();
-            return found;
-        }
-
-        void searchFood() {
-            string targetFood;
-            double foundCalories;
-            cout << "Enter the food name to search: ";
-            cin.ignore();
-            getline(cin, targetFood);
-            if (findFood(targetFood, foundCalories)) {
-                cout << "Food found: " << targetFood << " - " << foundCalories << " calories per 100g" << endl;
-            } else {
-                cout << "Food not found in the log!" << endl;
-            }
-        }
-
-        void deleteFood() {
-            ifstream inFile(fileName);
-            ofstream tempFile("temp.txt");
-            if (!inFile || !tempFile) {
-                cout << "Error opening file!" << endl;
-                return;
-            }
-            string targetFood, foodName;
-            double calorieValue;
-            cout << "Enter the food name to delete: ";
-            cin.ignore();
-            getline(cin, targetFood);
-            bool found = false;
-            while (inFile >> foodName >> calorieValue) {
-                if (foodName != targetFood) {
-                    tempFile << foodName << " " << calorieValue << endl;  // Write other records
-                } else {
-                    found = true;  // Mark as found, do not write this record
-                }
-            }
-            inFile.close();
-            tempFile.close();
-            if (found) {
-                remove(fileName.c_str());
-                rename("temp.txt", fileName.c_str());
-                cout << "Food record deleted successfully!" << endl;
-            } else {
-                remove("temp.txt");  // Delete the temp file if no food was found
-                cout << "Food not found in the log!" << endl;
-            }
-        }
+// Abstract base class for meals
+class Meal {
+	protected:
+	    string name;
+	    double calories,protein;
+	public:
+	    Meal(string n, double c,double p) {
+	    	name=n;
+	    	calories=c;
+	    	protein=p;
+		} 
+	    virtual void displayMeal()=0;  // Pure virtual function for meal display
+	    double getCalories() {
+	        return calories;
+	    }
+		double getProtein()  {
+	        return protein;
+	    }
+	    virtual ~Meal() {}
 };
 
-int main(){
-    int ch, req;
-    string fileName = "food_log.txt";  
-    FoodLog foodLog(fileName);        
-    cout<<"\nEnter 1 To calculate your required calorie per day.";
-    cout<<"\nEnter 2 To view food list.";
-    cout<<"\nEnter 3 To add food to food list.";
-    cout<<"\nEnter 4 To delete food from list.";
-    cout<<"\nEnter 5 To write your food log for the day.";
-    cout<<"\nEnter 6 To calculate calorie intake of the day.";
-    cout<<"\nEnter your choice: ";
-    cin>>ch;
-    switch(ch){
-        case 1:
-            cout<<"Calorie Calculator";
-            req = CalCalc();
-            cout<<"Your required calorie is: "<<req;
-            break;
-        case 2:
-            foodLog.viewFoodLog();
-            break;
-        case 3:
-            foodLog.addFood();
-            break;     
-        case 4:
-            break;
+// Derived class for Breakfast
+class Breakfast:public Meal {
+	public:
+	    Breakfast(string n, double c,double p) :Meal(n,c,p) {}
+	    void displayMeal() {
+	        cout<<"Breakfast : "<<endl<<name<<" , " <<calories<<"kCal , "<<protein<<" g"<< endl;
+	    }
+};
+
+// Derived class for Lunch
+class Lunch:public Meal {
+	public:
+	    Lunch(string n, double c,double p) :Meal(n,c,p) {}
+	    void displayMeal() {
+	        cout<<"Lunch : "<<endl<<name<<" , " <<calories<<"kCal , "<<protein<<" g"<< endl;
+	    }
+};
+
+// Derived class for Dinner
+class Dinner:public Meal {
+	public:
+	    Dinner(string n, double c,double p) :Meal(n,c,p) {}
+	    void displayMeal() {
+	        cout<<"Dinner : "<<endl<<name<<" , " <<calories<<"kCal , "<<protein<<" g"<< endl;
+	    }
+};
+
+class Snacks:public Meal {
+	public:
+	    Snacks(string n, double c,double p) :Meal(n,c,p) {}
+	    void displayMeal() {
+	        cout<<"Snacks : "<<endl<<name<<" , " <<calories<<"kCal , "<<protein<<" g"<< endl;
+	    }
+};
+
+// UserProfile class to store and manage user information
+class UserProfile {
+	private:
+	    double age,height,weight,goalCalorie,goalProtein;
+	    int activity;
+		string gender;	
+	public:
+	    UserProfile() {
+	    	age=height=weight=goalCalorie=goalProtein=0;
+		}
+		void setProfile() {
+	    	cout<<"Enter your age : ";
+	        cin>>age;
+	        cout<<"Enter your gender : ";
+	        cin>>gender;
+	        cout<<"Enter your height (in cm): ";
+	        cin>>height;
+	        cout<<"Enter your weight (in kg): ";
+	        cin>>weight;
+	        cout<<"Choose your activity level :\n1. Sedentary\n2. Light\n3. Moderate\n4. Very active\n5. Custom\nEnter your choice : ";
+	        cin>>activity;
+	        setCalorieGoal();
+	        setProteinGoal();
+	    }
+	    void setCalorieGoal() {
+	        int goal;
+	        cout<<"Choose your goal :\n1. Lose weight\n2. Maintain weight\n3. Gain weight\n4. Set a custom calorie goal\nEnter your choice : ";
+	        cin>>goal;
+	        switch(goal)
+	        {
+	        	case 1:
+	        		goalCalorie=calculateCalories()-500;
+	        		break;
+	        	case 2:
+	        		goalCalorie=calculateCalories();
+	        		break;
+	        	case 3:
+	        		goalCalorie=calculateCalories()+500;
+	        		break;
+	        	case 4:
+	        		cout<<"Enter custom calorie goal (in kCal) : ";
+	        		cin>>goalCalorie;
+	        		break;
+			}
+	        cout<<"Your daily calorie goal is set to "<<goalCalorie<<" calories.\n";
+	    }
+	    int calculateCalories() {
+	        double bmr;
+	        if(gender=="male")
+	        	bmr=10*weight+6.25*height-5*age+5; 
+	        else
+	        	bmr=10*weight+6.25*height-5*age-161;
+	        switch(activity)
+	        {
+	        	case 1:
+	        		return(bmr*1.2);
+	        	case 2:
+	        		return(bmr*1.375);
+	        	case 3:
+	        		return(bmr*1.55);
+	        	case 4:
+	        		return(bmr*1.725);
+	        	case 5:
+	        		double customFactor;
+	        		cout<<"Enter custom activity factor : ";
+	        		cin>>customFactor;
+	        		return(bmr*customFactor);
+			}
+	    }
+		 void setProteinGoal() {
+	        switch(activity)
+	        {
+	        	case 1:
+	        		goalProtein=0.1*weight*2.205;
+	        		break;
+	        	case 2:
+	        		goalProtein=0.5*weight*2.205;
+	        		break;
+	        	case 3:
+	        		goalProtein=0.6*weight*2.205;
+	        		break;
+	        	case 4:
+	        		goalProtein=0.8*weight*2.205;
+	        		break;
+	        	case 5:
+	        		cout<<"Enter custom protein goal (in g) : ";
+	        		cin>>goalProtein;
+			}
+	        cout<<"Your daily protein goal is set to "<<goalProtein<<" grams.\n";
+	    }
+	    double getCalorieGoal()  {
+	        return goalCalorie;
+	    }
+	    double getProteinGoal()  {
+	        return goalProtein;
+	    }
+};
+
+// CalorieTracker class to manage meals and total calorie count
+class CalorieTracker {
+private:
+    Meal* meals[MAX_MEALS];  // Array to store meal pointers
+    int mealCount;           // Number of meals added
+    double totalCalories,totalProtein;       // Total calories consumed
+    UserProfile user;        // User profile object
+
+public:
+    CalorieTracker() {
+    	mealCount=0;
+		totalCalories=totalProtein=0;
+        user.setProfile();
     }
+
+    // Add a meal to the tracker
+    void addMeal(Meal* meal) {
+        if(mealCount<MAX_MEALS) {
+            meals[mealCount++]=meal;
+            totalCalories+=meal->getCalories();
+            totalProtein+=meal->getProtein();
+            cout<<"Meal added!\n";
+        } 
+		else {
+            cout<<"Meal limit reached!\n";
+        }
+
+        // Warn if daily calorie limit is exceeded
+        if(totalCalories>user.getCalorieGoal()) {
+            cout<<"Warning: You've exceeded your daily calorie goal!\n";
+        }
+        if(totalProtein>user.getProteinGoal()) {
+            cout<<"Warning: You've exceeded your daily protein goal!\n";
+        }
+    }
+
+    // Display all meals added
+    void displayMeals()  {
+        if(mealCount==0) {
+            cout<<"No meals added yet.\n";
+            return;
+        }
+        cout<<"\nMeals for the day:\n";
+        for (int i = 0;i<mealCount;i++) {
+            meals[i]->displayMeal();
+        }
+    }
+
+    // Display total calories consumed
+    void displayTotalCalories()  {
+        cout<<"Total calories consumed : "<<totalCalories<<endl;
+    }
+    void displayTotalProtein()  {
+        cout<<"Total protein consumed : "<<totalProtein<<endl;
+    }
+
+    // Save meals to a file
+    void saveMealsToFile() const {
+        ofstream outFile("calories.txt");
+        if (!outFile) {
+            cout << "Error opening file for saving.\n";
+            return;
+        }
+        for (int i = 0; i < mealCount; i++) {
+            outFile << meals[i]->getCalories() << endl;
+        }
+        outFile.close();
+        cout << "Meals saved to file.\n";
+    }
+
+    // Destructor to free dynamically allocated memory
+    ~CalorieTracker() {
+        for (int i = 0; i < mealCount; i++) {
+            delete meals[i];  // Free each dynamically allocated meal
+        }
+    }
+};
+
+// Function to display the menu and get user choice
+int displayMenu() {
+    int choice;
+    cout << "\n--- Calorie Tracker Menu ---\n";
+    cout << "1. Add Breakfast\n";
+    cout << "2. Add Lunch\n";
+    cout << "3. Add Dinner\n";
+    cout << "4. View All Meals\n";
+    cout << "5. View Total Calories\n";
+    cout << "6. Save Meals to File\n";
+    cout << "7. Exit\n";
+    cout << "Enter your choice: ";
+    cin >> choice;
+    return choice;
 }
 
-int CalCalc(){
-    int age, weight, height, goal, bmr, al, wgl;
-    char gender;
-    cout<<"Enter Weight in Kilograms(kg): ";
-    cin>>weight;
-    cout<<"Enter Height in Centimeters(cm): ";
-    cin>>height;
-    cout<<"Enter Age in Years: ";
-    cin>>age;
-    cout<<"Enter Gender(M or male, F for female): ";
-    cin>>gender;
-    cout<<"Enter Your activity level \n1 For lightly active(physical activity 1-3 days a week) \n2 For moderately active(physical activivity 3-5 days a week) \n3 For highly active(high physical activivity 6-7 days a week)\n";
-    cout<<"Enter Your Choice: ";
-    cin>>al;
-    cout<<"Enter your goal \n1 For Weight Maintain \n2 For weight Loss \n3 For Weight Gain\n";
-    cout<<"Enter your choice: ";
-    cin>>wgl;
-    switch(gender){
-        case 'M':
-        case 'm':
-            bmr=(10 * weight) + (6.25 * height) - (5 * age) + 5;
-            break;
-        case 'F':
-        case 'f':    
-            bmr=(10 * weight) + (6.25 * height) - (5 * age) - 161;
-            break;
-        default:
-            cout << "Invalid choice!" << endl;    
-    }
-    switch(al){
+// Function to handle adding meals
+void addMeal(CalorieTracker &tracker, int type) {
+    string name;
+    double calories,protein;
+
+    cout << "Enter meal name: ";
+    cin.ignore();  // To clear newline character from input buffer
+    getline(cin, name);
+    cout<<"Enter calories and protein: ";
+    cin>>calories>>protein;
+
+    Meal* meal ;
+    switch (type) {
         case 1:
-            bmr = bmr * 1.375;
+            meal = new Breakfast(name, calories,protein);
             break;
         case 2:
-            bmr = bmr * 1.55;
+            meal = new Lunch(name, calories,protein);
             break;
         case 3:
-            bmr = bmr * 1.725;
+            meal = new Dinner(name, calories,protein);
+            break;
+        case 4:
+        	meal = new Snacks(name, calories,protein);
             break;
         default:
-            cout << "Invalid choice!" << endl;    
+            cout << "Invalid meal type!\n";
+            return;
     }
-    switch(wgl){
-        case 1:
-            goal = bmr;
-            break;
-        case 2:
-            goal = bmr * 0.87;
-            break;
-        case 3:
-            goal = bmr * 1.25;
-            break;
-        default:
-            cout << "Invalid choice!" << endl;    
-    }
-    return goal;
+
+    tracker.addMeal(meal);  // Add meal to the tracker
 }
+
+// Main function with menu-based program
+int main() {
+    CalorieTracker tracker;
+
+    while (true) {
+        int choice = displayMenu();
+
+        switch (choice) {
+            case 1:
+                addMeal(tracker, 1);
+                break;
+            case 2:
+                addMeal(tracker, 2);
+                break;
+            case 3:
+                addMeal(tracker, 3);
+                break;
+            case 4:
+                tracker.displayMeals();
+                break;
+            case 5:
+                tracker.displayTotalCalories();
+                break;
+            case 6:
+                tracker.saveMealsToFile();
+                break;
+            case 7:
+                cout << "Exiting program.\n";
+                return 0;
+            default:
+                cout << "Invalid choice! Please try again.\n";
+        }
+    }
+
+    return 0;
+}
+
