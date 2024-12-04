@@ -1,7 +1,9 @@
-#include<iostream>
-#include<fstream>
-#include<string.h>
-#include<stdlib.h>
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <stdlib.h>
+#include <stdio.h>
+#include<conio.h>
 #include<windows.h>
 using namespace std;
 
@@ -291,8 +293,7 @@ public:
 }
     void viewProfile() {
     	x=35,y=4; 	
-	    fstream file;
-	    openFile(file,"profile.txt",ios::in|ios::binary);
+	    ifstream file("profile.txt", ios::binary);
 	    if (file.is_open()) {
 	        system("cls");
 			gotoxy(x,y);
@@ -475,7 +476,6 @@ public:
     }
 
     void viewMeals() {
-    	
         loadMealsFromFile();
         for (int day = 0; day < MAX_DAYS; day++) {
             if (mealCounts[day] > 0) {
@@ -523,68 +523,6 @@ public:
 
 }
 
-struct Totals {
-    double calories[7] = {0}; // Total calories for each day
-    double protein[7] = {0};  // Total protein for each day
-
-    // Overload operator+= for the Totals structure
-    void operator+=(const Meal &meal) {
-        int day = meal.getDay() - 1; // Convert to 0-index
-        calories[day] += meal.getCalories();
-        protein[day] += meal.getProtein();
-    }
-};
-
-
-void analyze() {
-	x=35,y=1;
-	system("cls");
-	char fileName[100];
-	gotoxy(x,y);
-    cout<<"Enter filename to analyze meals: ";
-    cin>>fileName;
-    fstream file;
-    openFile(file,fileName,ios::in);
-	fstream user;
-	openFile(user,"profile.txt",ios::in);
-	user.read((char *)&profile,sizeof(UserProfile));
-    Totals totals; // Instance of the Totals structure
-
-    Meal* meal = NULL;
-    int type;
-
-    while (file.read((char*)&type, sizeof(type))) {
-        switch (type) {
-            case 1: meal = new Breakfast(); break;
-            case 2: meal = new Lunch(); break;
-            case 3: meal = new Dinner(); break;
-            case 4: meal = new Snacks(); break;
-            default: continue;
-        }
-
-        file.read((char*)meal, sizeof(*meal));
-
-        // Use overloaded += operator to add meal data to totals
-        totals += *meal;
-
-        delete meal; // Clean up dynamically allocated memory
-    }
-
-    file.close();
-    // Display totals
-    for (int day = 0; day < 7; ++day) {
-    	gotoxy(x,y+=2);
-        cout << "Day " << day + 1 << ": ";
-        gotoxy(x,++y);
-        cout<< "Calories consumed = " << totals.calories[day] << " / "<<profile.getGoalCalorie()<<" Kcal";
-        gotoxy(x,++y);
-		cout<< "Protein consumed = " << totals.protein[day] << " / "<<profile.getGoalProtein()<<" g";
-    }
-    (*posy)=31;
-}
-
-
-
     ~CalorieTracker() {
         for (int day = 0; day < MAX_DAYS; day++) {
             for (int i = 0; i < mealCounts[day]; i++) {
@@ -616,21 +554,19 @@ void displayMenu() {
     gotoxy(x,++y);
     cout<<"5. View Meals";
     gotoxy(x,++y);
-    cout<<"6. Analyze Meals";
-    gotoxy(x,++y);
-    cout<<"7. Exit";
+    cout<<"6. Exit";
 }
 
 int main() {
     UserProfile profile;
     CalorieTracker tracker;
-    int x=35,y=20;
+    int x=35,y=19;
     char choice;
 	posx=&x;
 	posy=&y;
     do {
         displayMenu();
-        choice=confirm("Which operation do you want to perform? [1-7] : ",&x,&y); 
+        choice=confirm("Which operation do you want to perform? [1-6] : ",&x,&y); 
         switch(choice) {
             case '1':
                 profile.setProfile();
@@ -648,9 +584,6 @@ int main() {
                 tracker.viewMeals();
                 break;
             case '6':
-                tracker.analyze();
-                break;
-            case '7':
             	system("cls");
                 gotoxy(x,4);
 				dash();
@@ -663,11 +596,11 @@ int main() {
             default:
             	y+=2;
                 gotoxy(x,y);
-				printf("Invalid choice. Please choose from 1 - 7.");
+				printf("Invalid choice. Please choose from 1 - 5.");
 				*posy=23;
         }
         choice=confirm("Do you want to continue? [Y/N] : ",posx,posy);
-        (*posy)=20;
+        (*posy)=19;
     } while(choice=='y' || choice=='Y');
     return 0;
 }
